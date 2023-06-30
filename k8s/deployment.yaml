@@ -1,6 +1,52 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-app
-  labels:
-    app: my-app
+  name: backendk8s-app-deployment
+  annotations:
+    kubernetes.io/change-cause: "inital deployment"
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: backendk8s-app
+  template:
+    metadata:
+      name: backendk8s
+      labels:
+        env: prod
+        app: backendk8s-app
+        app.kubernetes.io/name: backendk8s-app
+    spec:
+      containers:
+        - name: backendk8s-app
+          image: turkialq/backendk8s:v1
+          ports:
+            - containerPort: 80
+              name: http-web-api
+          resources:
+            requests:
+              memory: "50Mi"
+              cpu: "100m"
+            limits:
+              memory: "100Mi"
+              cpu: "200m"
+          env:
+            - name: ASPNETCORE_URLS
+              value: htpp://*:80
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-loadbalancer-service
+spec:
+  selector:
+    app.kubernetes.io/name: backendk8s-app
+  ports:
+    - name: backendk8s-app-port
+      protocol: TCP
+      port: 8080
+      targetPort: 80
+  type: LoadBalancer
+
